@@ -1,5 +1,7 @@
 #!/bin/bash
-echo "Starting Autocaddy"
+set -e 
+set -o pipefail
+echo "Starting Lemego"
 # ====== Check variables ======
 if [[ -z "$DOMAIN" ]]; then
   echo "ERROR Domain not specified"
@@ -16,64 +18,15 @@ if [[ -z "$EMAIL" ]]; then
   echo "ERROR Webmaster email address missing."
   exit 3
 fi
-PORT="${PORT:-80}"
 
-# ====== Generate config ======
-DOTS_ONLY="${DOMAIN//[^.]}."
-# Mind the extra dot at the end
-# there are one less dots than labels in a domain
-LABEL_COUNT=${#DOTS_ONLY}
-echo "{
-  admin off
-  log debug
-}
-*.$DOMAIN {
-  encode zstd gzip
-  tls /lego/.lego/certificates/_.$DOMAIN.crt /lego/.lego/certificates/_.$DOMAIN.key
-  $CADDY_CONFIG
-  reverse_proxy * {http.request.host.labels.$LABEL_COUNT}:$PORT {
-    header_up X-Real-IP {remote}
-  }
-}
-" > /tmp/Caddyfile
-echo "FInal caddyfile:"
-cat /tmp/Caddyfile
-if ! obtain_cert; then
-  echo "Failed to obtain certificate"
-  exit 10
-fi
+# ====== Initial run for failure reporting ======
+obtain_cert
 
-# ====== Invoke Caddy and start renew loop ======
-kill_all_children() {
-  local list=$( jobs -rp );
-  test -n "$list" && kill $list
-}
-wait_about_one_day() {
+# ====== Start renew loop ======
+while 1; do
+  # ====== Update certificate if necessary and possible ======
+  obtain_cert || true
+  # ====== Wait a random amount of minutes to avoid recurring failures ======
   random_mins=$(shuf -i 0-30 -n 1)
   sleep $(expr 3600 \* 24 + 60 \* $random_mins)
-}
-# exit on SIGTERM (happy path) and SIGCHLD (sad path)
-_term() {
-  kill_all_children
-  exit 0
-}
-_chld() {
-  kill_all_children
-  exit 1
-}
-trap _term SIGTERM
-trap _chld CHLD
-# Start Caddy in the background
-caddy run --config /tmp/Caddyfile --adapter caddyfile &
-# Start Lego in the background
-_lego_loop() {
-  lego_exit_status=0
-  while [ $lego_exit_status -eq 0 ]; do
-    wait_about_one_day
-    obtain_cert
-    lego_exit_status=$?
-  done
-}
-_lego_loop &
-# Wait for them to finish
-wait
+done
