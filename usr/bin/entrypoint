@@ -23,7 +23,7 @@ fi
 obtain_cert
 
 # ====== Start renew loop ======
-while 1; do
+while true; do
   # ====== Update certificate if necessary and possible ======
   obtain_cert || true
   # ====== Wait a random amount of minutes to avoid recurring failures ======
