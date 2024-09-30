@@ -3,10 +3,10 @@ cd /lego
 certfile=".lego/certificates/_.$DOMAIN.crt"
 if [ ! -f $certfile ]; then
     # If a certificate doesn't exist yet, obtain one first
-    lego --accept-tos --email=$EMAIL --domains="*.$DOMAIN" --dns=$DNS run
+    lego --accept-tos --email=$EMAIL --domains="*.$DOMAIN" --dns=$DNS $LEGO_FLAGS run
     exit $?
 else
     # Refresh if needed
-    lego --accept-tos --email=$EMAIL --domains="*.$DOMAIN" --dns=$DNS renew
+    lego --accept-tos --email=$EMAIL --domains="*.$DOMAIN" --dns=$DNS $LEGO_FLAGS renew
     exit $?
 fi

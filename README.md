@@ -21,3 +21,5 @@ docker run -d --restart always --name certs -v tls:/lego \
 ```
 
 Certs are checked approximately daily, with some variation to get around daily failures.
+
+You can use LEGO_FLAGS to pass additional settings to lego
