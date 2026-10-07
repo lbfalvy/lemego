@@ -6,6 +6,7 @@ A plain Alpine container that maintains a wildcard DNS cert using Lego
     - DOMAIN: the domain name under which to proxy subdomains without the wildcard label. (eg. for `*.example.com` use `example.com`)
     - DNS: the DNS provider's name as recognized by [Lego](https://go-acme.github.io/lego/dns/)
     - EMAIL: email address to use in certificates
+    - FILEMODE: the permission phrase used to set the certificate and key file's access level, in any format accepted by `chmod`
     - Any environment variables required to configure Lego for your DNS provider
 2. Persist `/lego` using volumes or bind mounts.
    This volume contains your certificate and key at `.lego/certificates/_.$DOMAIN.crt` and `.lego/certificates/_.$DOMAIN.key` respectively.
@@ -14,7 +15,7 @@ A plain Alpine container that maintains a wildcard DNS cert using Lego
 Example command for Linode:
 
 ```bash
-docker run -d --restart always --name certs -v tls:/lego \
+docker run -d --restart always --name certs -v tls:/lego -e FILEMODE=755 \
     -e DOMAIN=example.com -e EMAIL=webmaster@example.com \
     -e DNS=linode -e LINODE_TOKEN=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef \
     lbfalvy/lemego

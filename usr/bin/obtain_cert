@@ -1,12 +1,19 @@
 #!/bin/bash
 cd /lego
 certfile=".lego/certificates/_.$DOMAIN.crt"
+wrap-lego() {
+  lego --accept-tos --email=$EMAIL \
+    --domains="*.$DOMAIN" --dns=$DNS $LEGO_FLAGS \
+    $1
+  CODE=$?
+  chmod $FILEMODE -R .lego
+  exit $CODE
+}
+
 if [ ! -f $certfile ]; then
-    # If a certificate doesn't exist yet, obtain one first
-    lego --accept-tos --email=$EMAIL --domains="*.$DOMAIN" --dns=$DNS $LEGO_FLAGS run
-    exit $?
+  # If a certificate doesn't exist yet, obtain one first
+  wrap-lego run
 else
-    # Refresh if needed
-    lego --accept-tos --email=$EMAIL --domains="*.$DOMAIN" --dns=$DNS $LEGO_FLAGS renew
-    exit $?
+  # Refresh if needed
+  wrap-lego renew
 fi

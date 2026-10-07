@@ -4,19 +4,24 @@ set -o pipefail
 echo "Starting Lemego"
 # ====== Check variables ======
 if [[ -z "$DOMAIN" ]]; then
-  echo "ERROR Domain not specified"
+  echo "ERROR Domain not specified. Please set \$DOMAIN to the base domain under which \
+your wildcard addresses will reside"
   exit 1
 fi
 if [[ -z "$DNS" ]]; then
-  echo "ERROR DNS provider missing. Wildcard domains only support the ACME DNS challenge, \
+  echo "ERROR: DNS provider missing. Wildcard domains only support the ACME DNS challenge, \
 which requires setting TXT records. Set \$DNS to your DNS provider's name (as recognized by \
 lego_deprecated) and provide login \
 info through environment variables"
   exit 2
 fi
 if [[ -z "$EMAIL" ]]; then
-  echo "ERROR Webmaster email address missing."
+  echo "ERROR: Webmaster email address missing. Please set \$EMAIL to a live email address"
   exit 3
+fi
+if [[ -z "$FILEMODE" ]]; then
+  echo "WARNING: \$FILEMODE not set, defaulting to 750"
+  export FILEMODE=750
 fi
 
 # ====== Initial run for failure reporting ======
